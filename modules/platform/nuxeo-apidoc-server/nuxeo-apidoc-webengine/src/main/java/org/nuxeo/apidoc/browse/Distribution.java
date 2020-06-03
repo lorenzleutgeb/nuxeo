@@ -202,7 +202,7 @@ public class Distribution extends ModuleRoot {
             snaps.add(getRuntimeDistribution());
             distributionId = SnapshotResolverHelper.findBestMatch(snaps, distributionId);
         }
-        if (distributionId == null || "".equals(distributionId)) {
+        if (StringUtils.isBlank(distributionId)) {
             distributionId = SnapshotManager.DISTRIBUTION_ALIAS_CURRENT;
         }
 
