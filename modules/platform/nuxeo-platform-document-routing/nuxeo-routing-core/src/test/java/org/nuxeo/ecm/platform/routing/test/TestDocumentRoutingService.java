@@ -23,6 +23,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.DOCUMENT_ROUTE_DOCUMENT_TYPE;
+import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.TITLE_PROPERTY_NAME;
+import static org.nuxeo.ecm.platform.task.TaskConstants.TASK_PROCESS_ID_PROPERTY_NAME;
+import static org.nuxeo.ecm.platform.task.TaskConstants.TASK_TYPE_NAME;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,6 +40,7 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
@@ -359,6 +365,25 @@ public class TestDocumentRoutingService extends DocumentRoutingTestCase {
         assertEquals("done", children.get(1).getCurrentLifeCycleState());
         // branch not executed is now in canceled state
         assertEquals("canceled", children.get(2).getCurrentLifeCycleState());
+    }
+
+    @Test
+    public void testOrphanTasksDeletion() {
+        DocumentModel route = session.createDocumentModel("/default-domain/workspaces", "dummyRoute",
+                DOCUMENT_ROUTE_DOCUMENT_TYPE);
+        route.setPropertyValue(TITLE_PROPERTY_NAME, "dummyRoute");
+        route = session.createDocument(route);
+
+        DocumentModel taskDocument = session.createDocumentModel("/default-domain/workspaces", "dummyTask",
+                TASK_TYPE_NAME);
+        taskDocument.setPropertyValue(TASK_PROCESS_ID_PROPERTY_NAME, route.getId());
+        taskDocument = session.createDocument(taskDocument);
+        session.save();
+        session.removeDocument(route.getRef());
+        if (session.exists(taskDocument.getRef())) {
+            // Orphan tasks should not be found
+            fail();
+        }
     }
 
     protected void setPermissionToUser(DocumentModel doc, String username, String... perms) {

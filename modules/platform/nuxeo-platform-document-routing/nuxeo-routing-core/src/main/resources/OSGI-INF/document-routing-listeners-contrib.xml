@@ -47,6 +47,12 @@
       class="org.nuxeo.ecm.platform.routing.core.listener.RoutingTaskDeletedListener">
       <event>aboutToRemove</event>
     </listener>
+    
+    <listener async="true" postCommit="false"
+      class="org.nuxeo.ecm.platform.routing.core.listener.DocumentRouteDeletedListener"
+      name="removeTasksForDeletedDocumentRoute">
+      <event>aboutToRemove</event>
+    </listener>
 
   </extension>
 
