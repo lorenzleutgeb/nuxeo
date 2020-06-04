@@ -233,7 +233,12 @@ while true; do
   done
   cp "$NUXEO_LAUNCHER" "$TMPLAUNCHER"
   echo [`date`] "Launcher command: $JAVA  \"-Xbootclasspath/a:$JAVA_TOOLS\" $MODULE_OPTS $LAUNCHER_DEBUG \"-Dlauncher.java.opts=$JAVA_OPTS\" \"-Dnuxeo.home=$NUXEO_HOME\" \"-Dnuxeo.conf=$NUXEO_CONF\" \"-Dnuxeo.log.dir=$LOG_DIR\" -jar \"$TMPLAUNCHER\" $@" >> "$LOG_DIR"/nuxeoctl.log
-  "$JAVA" "-Xbootclasspath/a:$JAVA_TOOLS" $MODULE_OPTS $LAUNCHER_DEBUG "-Dlauncher.java.opts=$JAVA_OPTS" "-Dnuxeo.home=$NUXEO_HOME" "-Dnuxeo.conf=$NUXEO_CONF" "-Dnuxeo.log.dir=$LOG_DIR" -jar "$TMPLAUNCHER" "$@"
+  trap 'kill -TERM $PID' TERM INT
+  "$JAVA" "-Xbootclasspath/a:$JAVA_TOOLS" $MODULE_OPTS $LAUNCHER_DEBUG "-Dlauncher.java.opts=$JAVA_OPTS" "-Dnuxeo.home=$NUXEO_HOME" "-Dnuxeo.conf=$NUXEO_CONF" "-Dnuxeo.log.dir=$LOG_DIR" -jar "$TMPLAUNCHER" "$@" &
+  PID=$!
+  wait $PID
+  trap - TERM INT
+  wait $PID
   exitcode=$?
   rm -f "$TMPLAUNCHER"
   if [ "$exitcode" != "128" ]; then
